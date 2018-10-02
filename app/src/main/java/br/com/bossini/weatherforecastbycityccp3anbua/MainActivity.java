@@ -1,5 +1,6 @@
 package br.com.bossini.weatherforecastbycityccp3anbua;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -9,7 +10,12 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -18,14 +24,23 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private EditText locationEditText;
+    private ListView weatherListView;
+    private WeatherArrayAdapter adapter;
+    private List <Weather> weatherList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        weatherListView = findViewById(R.id.weatherListView);
+        weatherList = new ArrayList<>();
+        adapter = new WeatherArrayAdapter(this, weatherList);
+        weatherListView.setAdapter(adapter);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         locationEditText = findViewById(R.id.locationEditText);
@@ -35,32 +50,63 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String cidade = locationEditText.getEditableText().toString();
-                new Thread(new Runnable(){
+                /*new Thread(new Runnable(){
                     @Override
                     public void run() {
-                        try{
-                            URL url = createURL(cidade);
-                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                            InputStream stream = connection.getInputStream();
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-                            String linha = null;
-                            StringBuilder stringBuilder = new StringBuilder ("");
-                            while ((linha = reader.readLine()) != null){
-                                stringBuilder.append(linha);
-                            }
-                            String json = stringBuilder.toString();
-                            Toast.makeText(MainActivity.this, json, Toast.LENGTH_SHORT).show();
-                        }
-                        catch (Exception e){
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();
+                }).start();*/
+                WebServiceClient client = new WebServiceClient();
+                client.execute(cidade);
 
 
 
             }
         });
+    }
+
+    private class WebServiceClient extends AsyncTask <String, Void, String>{
+        @Override
+        protected String doInBackground(String... cidade) {
+            try{
+                URL url = createURL(cidade[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                InputStream stream = connection.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+                String linha = null;
+                StringBuilder stringBuilder = new StringBuilder ("");
+                while ((linha = reader.readLine()) != null){
+                    stringBuilder.append(linha);
+                }
+                String json = stringBuilder.toString();
+                return json;
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                return null;
+            }
+        }
+        @Override
+        protected void onPostExecute(String json) {
+            //Toast.makeText(MainActivity.this, json, Toast.LENGTH_SHORT).show();
+            try {
+                weatherList.clear();
+                JSONObject previsoes = new JSONObject(json);
+                JSONArray list = previsoes.getJSONArray("list");
+                for (int i = 0; i < list.length(); i++){
+                    JSONObject previsao = list.getJSONObject(i);
+                    long dt = previsao.getLong("dt");
+                    JSONObject main = previsao.getJSONObject("main");
+                    double temp_min = main.getDouble("temp_min");
+                    double temp_max = main.getDouble("temp_max");
+                    int humidity = main.getInt ("humidity");
+                    String description = previsao.getJSONArray("weather").getJSONObject(0).
+                            getString("description");
+                    String icon =  previsao.getJSONArray("weather").getJSONObject(0).
+                            getString("icon");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private URL createURL (String cidade){
