@@ -36,45 +36,34 @@ public class WeatherArrayAdapter extends ArrayAdapter <Weather> {
     public View getView(int position, @Nullable View convertView,
                         @NonNull ViewGroup parent) {
         Weather previsao = getItem(position);
+        View raiz = null;
+        ViewHolder viewHolder = null;
         Context context = getContext();
-        LayoutInflater inflater = LayoutInflater.from(context);
-        View raiz = inflater.inflate(R.layout.list_item, parent, false);
-        ImageView conditionImageView = raiz.findViewById(R.id.conditionImageView);
-        TextView dayTextView = raiz.findViewById(R.id.dayTextView);
-        TextView lowTextView = raiz.findViewById(R.id.lowTextView);
-        TextView hiTextView = raiz.findViewById(R.id.hiTextView);
-        TextView humidityTextView = raiz.findViewById(R.id.humidityTextView);
-        dayTextView.setText(context.
+        if (convertView == null){
+            LayoutInflater inflater = LayoutInflater.from(context);
+            raiz = inflater.inflate(R.layout.list_item, parent, false);
+            viewHolder = new ViewHolder();
+            raiz.setTag(viewHolder);
+            viewHolder.conditionImageView = raiz.findViewById(R.id.conditionImageView);
+            viewHolder.dayTextView = raiz.findViewById(R.id.dayTextView);
+            viewHolder.lowTextView = raiz.findViewById(R.id.lowTextView);
+            viewHolder.hiTextView = raiz.findViewById(R.id.hiTextView);
+            viewHolder.humidityTextView = raiz.findViewById(R.id.humidityTextView);
+        }
+        else{
+            raiz = convertView;
+            viewHolder = (ViewHolder) raiz.getTag();
+        }
+        viewHolder.dayTextView.setText(context.
                 getString(R.string.day_description,
                 previsao.dayOfWeek,
                 previsao.description));
-        lowTextView.setText(context.getString(R.string.low_temp, previsao.minTemp));
-        hiTextView.setText(context.getString(R.string.high_temp, previsao.maxTemp));
-        humidityTextView.setText(context.getString(R.string.humidity, previsao.humidity));
-
+        viewHolder.lowTextView.setText(context.getString(R.string.low_temp, previsao.minTemp));
+        viewHolder.hiTextView.setText(context.getString(R.string.high_temp, previsao.maxTemp));
+        viewHolder.humidityTextView.setText(context.getString(R.string.humidity, previsao.humidity));
         return raiz;
 
-
-        
-
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
