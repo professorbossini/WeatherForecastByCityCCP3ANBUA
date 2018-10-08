@@ -3,5 +3,6 @@
 
     <string name="api_key">ef0b0973b783e0614ac87612ec04344b</string>
     <string name="web_service_url">http://api.openweathermap.org/data/2.5/forecast?q=</string>
+    <string name="image_download_url">http://openweathermap.org/img/w/%s.png</string>
 
 </resources>

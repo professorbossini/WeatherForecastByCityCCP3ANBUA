@@ -1,5 +1,8 @@
 package br.com.bossini.weatherforecastbycityccp3anbua;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -10,8 +13,11 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +25,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -63,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+
     private class WebServiceClient extends AsyncTask <String, Void, String>{
         @Override
         protected String doInBackground(String... cidade) {
@@ -76,8 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 while ((linha = reader.readLine()) != null){
                     stringBuilder.append(linha);
                 }
-                String json = stringBuilder.toString();
-                return json;
+                return stringBuilder.toString();
             }
             catch (Exception e){
                 e.printStackTrace();
@@ -89,7 +97,12 @@ public class MainActivity extends AppCompatActivity {
             //Toast.makeText(MainActivity.this, json, Toast.LENGTH_SHORT).show();
             try {
                 weatherList.clear();
-                JSONObject previsoes = new JSONObject(json);
+                Gson gson = new Gson();
+                ForecastData previsoes = gson.fromJson(json, ForecastData.class);
+                for (WeatherData data : previsoes.getList()) {
+                    weatherList.add(new Weather(data));
+                }
+                /*JSONObject previsoes = new JSONObject(json);
                 JSONArray list = previsoes.getJSONArray("list");
                 for (int i = 0; i < list.length(); i++){
                     JSONObject previsao = list.getJSONObject(i);
@@ -102,7 +115,12 @@ public class MainActivity extends AppCompatActivity {
                             getString("description");
                     String icon =  previsao.getJSONArray("weather").getJSONObject(0).
                             getString("icon");
-                }
+                    Weather weather = new Weather(dt,
+                            temp_min, temp_max, humidity,
+                            description, icon);
+                    weatherList.add(weather);
+                }*/
+                adapter.notifyDataSetChanged();
             } catch (Exception e) {
                 e.printStackTrace();
             }
